@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Квест-симулятор: Основи інформаційної безпеки</title>
+    <style>
+        :root {
+            --bg-dark: #0b0f19;
+            --bg-card: #131b2e;
+            --bg-theory: #1a2540;
+            --accent-cyan: #00f0ff;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-amber: #f59e0b;
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            --border-color: #263354;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 15% 20%, rgba(0, 240, 255, 0.06) 0%, transparent 40%),
+                radial-gradient(circle at 85% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 40%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 860px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 240, 255, 0.08);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(11, 15, 25, 0.8);
+            padding: 18px 28px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--accent-cyan);
+        }
+
+        .status-dot {
+            width: 9px;
+            height: 9px;
+            background: var(--accent-cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent-cyan);
+        }
+
+        .controls-top {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .sound-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .sound-btn:hover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        .progress-wrapper {
+            width: 100%;
+            height: 5px;
+            background: #1e293b;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+            transition: width 0.4s ease;
+        }
+
+        /* Content */
+        .content {
+            padding: 32px 28px;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 14px;
+            color: #fff;
+        }
+
+        h2 {
+            font-size: 1.35rem;
+            margin-bottom: 16px;
+            color: #fff;
+            line-height: 1.4;
+        }
+
+        p {
+            line-height: 1.65;
+            color: var(--text-main);
+            margin-bottom: 16px;
+        }
+
+        /* Theory Box */
+        .theory-box {
+            background: var(--bg-theory);
+            border-left: 4px solid var(--accent-cyan);
+            border-radius: 10px;
+            padding: 20px 22px;
+            margin-bottom: 24px;
+        }
+
+        .theory-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--accent-cyan);
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .theory-box ul {
+            margin-left: 20px;
+            margin-top: 8px;
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        .theory-box li {
+            margin-bottom: 6px;
+        }
+
+        /* Options */
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .option-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 15px 18px;
+            border-radius: 10px;
+            text-align: left;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            line-height: 1.45;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background: rgba(0, 240, 255, 0.08);
+            border-color: var(--accent-cyan);
+            transform: translateX(4px);
+        }
+
+        .option-btn.correct {
+            background: rgba(16, 185, 129, 0.18);
+            border-color: var(--accent-green);
+            color: #fff;
+        }
+
+        .option-btn.wrong {
+            background: rgba(239, 68, 68, 0.18);
+            border-color: var(--accent-red);
+            color: #fff;
+        }
+
+        .option-btn:disabled {
+            cursor: default;
+        }
+
+        /* Matching Grid */
+        .match-instruction {
+            font-size: 0.92rem;
+            color: var(--accent-amber);
+            margin-bottom: 14px;
+        }
+
+        .matching-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 640px) {
+            .matching-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .match-col {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .match-item {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 12px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            text-align: left;
+            transition: all 0.2s;
+            min-height: 54px;
+            display: flex;
+            align-items: center;
+            line-height: 1.35;
+        }
+
+        .match-item:hover:not(.matched):not(:disabled) {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 240, 255, 0.07);
+        }
+
+        .match-item.selected {
+            border-color: var(--accent-amber);
+            background: rgba(245, 158, 11, 0.18);
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
+        }
+
+        .match-item.matched {
+            border-color: var(--accent-green);
+            background: rgba(16, 185, 129, 0.15);
+            color: #a7f3d0;
+            cursor: default;
+        }
+
+        .match-item.error-flash {
+            border-color: var(--accent-red);
+            background: rgba(239, 68, 68, 0.25);
+        }
+
+        /* Feedback Box */
+        .feedback {
+            padding: 14px 18px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.96rem;
+            line-height: 1.5;
+            display: none;
+        }
+
+        .feedback.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .feedback.success {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid var(--accent-green);
+            color: #6ee7b7;
+        }
+
+        .feedback.fail {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid var(--accent-red);
+            color: #fca5a5;
+        }
+
+        /* Primary Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-blue), #0284c7);
+            color: #fff;
+            border: none;
+            padding: 13px 26px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 240, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(0, 240, 255, 0.12);
+            color: var(--accent-cyan);
+            border: 1px solid var(--accent-cyan);
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0, 240, 255, 0.22);
+        }
+
+        .actions-row {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Result Screen */
+        .result-card {
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 5px solid var(--accent-cyan);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 20px auto;
+            background: rgba(0, 240, 255, 0.06);
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.2);
+        }
+
+        .score-number {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1;
+        }
+
+        .score-label {
+            font-size: 0.9rem;
+            color: var(--accent-cyan);
+            margin-top: 6px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 24px 0;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            padding: 14px;
+            border-radius: 10px;
+        }
+
+        .stat-val {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .stat-name {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div class="badge">
+            <span class="status-dot"></span>
+            <span id="header-status">CYBER SHIELD // СИМУЛЯТОР БЕЗПЕКИ</span>
+        </div>
+        <div class="controls-top">
+            <span id="step-counter" style="font-size: 0.9rem; color: var(--text-muted);">Етап: 0 / 10</span>
+            <button class="sound-btn" id="sound-toggle" title="Увімкнути/вимкнути звук">🔊 Звук: УВІМК</button>
+        </div>
+    </div>
+    <div class="progress-wrapper">
+        <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <!-- Екран старту -->
+    <div class="content" id="start-screen">
+        <h1>🛡️ Квест-симулятор: Основи інформаційної безпеки</h1>
+        <p>Вітаємо у тренувальному центрі кіберзахисту! Твоє завдання — пройти <strong>10 етапів</strong> побудови надійної системи захисту інформації (СЗІ).</p>
+        <div class="theory-box">
+            <div class="theory-title">📋 Інструктаж перед місією</div>
+            <ul>
+                <li><strong>Спочатку теорія:</strong> на кожному етапі ти спершу вивчаєш короткий теоретичний блок, а потім переходиш до практичного завдання.</li>
+                <li><strong>Різні формати:</strong> окрім вибору правильної відповіді, на тебе чекають завдання на встановлення логічних пар.</li>
+                <li><strong>Динамічна генерація:</strong> порядок питань та варіанти відповідей перемішуються під час кожного запуску.</li>
+                <li><strong>Оцінювання:</strong> за кожен безпомилково пройдений етап нараховується <strong>1 бал</strong> (максимум — <strong>10 балів</strong>).</li>
+            </ul>
+        </div>
+        <div class="actions-row">
+            <button class="btn-primary" id="start-btn">Розпочати квест 🚀</button>
+        </div>
+    </div>
+
+    <!-- Екран етапу (Теорія -> Завдання) -->
+    <div class="content hidden" id="stage-screen">
+        <!-- Блок теорії -->
+        <div id="theory-phase">
+            <div class="theory-box">
+                <div class="theory-title">📘 Теоретичний брифінг — Етап <span id="theory-num">1</span></div>
+                <h2 id="theory-heading"></h2>
+                <div id="theory-body"></div>
+            </div>
+            <div class="actions-row">
+                <button class="btn-secondary" id="to-question-btn">Я вивчив теорію → Перейти до завдання</button>
+            </div>
+        </div>
+
+        <!-- Блок питання -->
+        <div id="question-phase" class="hidden">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <span style="font-size:0.85rem; color:var(--accent-cyan); font-weight:600;">ПРАКТИЧНЕ ЗАВДАННЯ <span id="q-num">1</span>/10</span>
+                <button class="sound-btn" id="review-theory-btn" style="font-size:0.8rem;">📖 Переглянути теорію</button>
+            </div>
+            <h2 id="question-text"></h2>
+
+            <!-- Контейнер для тесту з 1 відповіддю -->
+            <div id="mcq-container" class="options-list hidden"></div>
+
+            <!-- Контейнер для поєднання пар -->
+            <div id="match-container" class="hidden">
+                <div class="match-instruction">🔗 Натисни спочатку на елемент у лівому стовпчику, а потім — на відповідний йому елемент у правому.</div>
+                <div class="matching-container">
+                    <div class="match-col" id="match-left"></div>
+                    <div class="match-col" id="match-right"></div>
+                </div>
+            </div>
+
+            <div class="feedback" id="feedback-box"></div>
+
+            <div class="actions-row">
+                <button class="btn-primary hidden" id="next-btn">Наступний етап ➔</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Екран результатів -->
+    <div class="content hidden" id="result-screen">
+        <div class="result-card">
+            <h1>🏁 Симуляцію завершено!</h1>
+            <p id="result-subtitle" style="color: var(--text-muted);">Аналіз результатів проходження протоколів безпеки</p>
+
+            <div class="score-circle">
+                <div class="score-number" id="final-grade">0</div>
+                <div class="score-label">з 10 балів</div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-val" id="stat-correct" style="color: var(--accent-green);">0</div>
+                    <div class="stat-name">Правильних етапів</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-val" id="stat-wrong" style="color: var(--accent-red);">0</div>
+                    <div class="stat-name">З помилками</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-val" id="stat-percent" style="color: var(--accent-cyan);">0%</div>
+                    <div class="stat-name">Ефективність захисту</div>
+                </div>
+            </div>
+
+            <div class="theory-box" style="text-align: left;" id="result-verdict"></div>
+
+            <div class="actions-row" style="justify-content: center; margin-top: 20px;">
+                <button class="btn-primary" id="restart-btn">🔄 Пройти знову (перемішати питання)</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- ЗВУКОВИЙ СИНТЕЗАТОР (Web Audio API) ---
+    class SoundFX {
+        constructor() {
+            this.enabled = true;
+            this.ctx = null;
+        }
+
+        init() {
+            if (!this.ctx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                this.ctx = new AudioContext();
+            }
+            if (this.ctx.state === 'suspended') {
+                this.ctx.resume();
+            }
+        }
+
+        playTone(freq, type, duration, delay = 0, vol = 0.15) {
+            if (!this.enabled) return;
+            this.init();
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, this.ctx.currentTime + delay);
+
+            gain.gain.setValueAtTime(vol, this.ctx.currentTime + delay);
+            gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + delay + duration);
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+
+            osc.start(this.ctx.currentTime + delay);
+            osc.stop(this.ctx.currentTime + delay + duration);
+        }
+
+        click() {
+            this.playTone(620, 'sine', 0.08, 0, 0.1);
+        }
+
+        matchStep() {
+            this.playTone(523.25, 'triangle', 0.12, 0, 0.12);
+            this.playTone(659.25, 'triangle', 0.15, 0.08, 0.12);
+        }
+
+        correct() {
+            this.playTone(523.25, 'sine', 0.15, 0, 0.15);
+            this.playTone(659.25, 'sine', 0.15, 0.1, 0.15);
+            this.playTone(783.99, 'sine', 0.3, 0.2, 0.18);
+        }
+
+        wrong() {
+            this.playTone(220, 'sawtooth', 0.2, 0, 0.12);
+            this.playTone(175, 'sawtooth', 0.3, 0.15, 0.12);
+        }
+
+        finish() {
+            const notes = [523.25, 659.25, 783.99, 1046.50];
+            notes.forEach((n, i) => this.playTone(n, 'triangle', 0.25, i * 0.12, 0.15));
+        }
+    }
+
+    const sfx = new SoundFX();
+
+    // --- БАЗА ДАНИХ (10 ЕТАПІВ ЗА ПРЕЗЕНТАЦІЄЮ УРОКУ 5) ---
+    const questData = [
+        {
+            type: 'mcq',
+            theoryTitle: 'Об’єкти захисту та людський фактор',
+            theoryHTML: `<p>Інформаційна безпека автоматизованої системи залежить не лише від самих комп’ютерів, а й від <strong>інфраструктури, що її підтримує</strong>: систем електро-, водо- і теплопостачання, кондиціонерів, засобів комунікацій та обслуговуючого персоналу.</p>
+                         <p>При цьому фахівці з кібербезпеки наголошують: <strong>найслабшою ланкою інформаційної безпеки є людина</strong> (через помилки, недбалість або вразливість до соціальної інженерії).</p>`,
+            question: 'Що згідно з теорією інформаційної безпеки вважається «найслабшою ланкою» системи захисту?',
+            options: [
+                { text: 'Людина (користувачі та обслуговуючий персонал)', correct: true },
+                { text: 'Кабельна система та мережеві комутатори', correct: false },
+                { text: 'Антивірусне програмне забезпечення', correct: false },
+                { text: 'Системи безперебійного електроживлення', correct: false }
+            ],
+            explanation: 'Навіть найдорожчі апаратні та криптографічні засоби можуть бути скомпрометовані через помилку або недбалість людини.'
+        },
+        {
+            type: 'mcq',
+            theoryTitle: 'Етапи розробки концепції захисту інформації',
+            theoryHTML: `<p>Розробку концепції захисту інформації рекомендується проводити у <strong>три послідовні етапи</strong>:</p>
+                         <ul>
+                            <li><strong>І етап:</strong> визначення цінності об’єкта захисту інформації (що саме і наскільки важливо захищати).</li>
+                            <li><strong>ІІ етап:</strong> аналіз потенційних дій зловмисників (моделювання загроз).</li>
+                            <li><strong>ІІІ етап:</strong> оцінка надійності вже встановлених засобів захисту на об’єкті.</li>
+                         </ul>
+                         <p>На основі концепції далі створюються стратегія, архітектура та політика безпеки.</p>`,
+            question: 'З чого саме необхідно розпочинати (І етап) розробку концепції захисту інформації?',
+            options: [
+                { text: 'З визначення цінності об’єкта захисту інформації', correct: true },
+                { text: 'З негайної закупівлі антивірусів та міжмережевих екранів', correct: false },
+                { text: 'З написання посадових інструкцій для системних адміністраторів', correct: false },
+                { text: 'З кримінального переслідування потенційних порушників', correct: false }
+            ],
+            explanation: 'Перш ніж витрачати ресурси на захист, потрібно визначити, що саме є цінним і підлягає захисту (І етап).'
+        },
+        {
+            type: 'match',
+            theoryTitle: 'Чотири базові стратегії захисту інформації',
+            theoryHTML: `<p>У теорії безпеки виділяють 4 основні стратегії захисту:</p>
+                         <ul>
+                            <li><strong>«Нікого не впускати»</strong> — повна фізична та мережева ізоляція системи (найвищий захист, але непрактично для обміну даними).</li>
+                            <li><strong>«Не впускати порушників»</strong> — використання міжмережевих екранів (МЕ) та електронних цифрових підписів (ЕЦП).</li>
+                            <li><strong>«Пустити порушників, але перешкодити шкоді»</strong> — ізольоване середовище виконання підозрілого коду (технологія <em>sandboxing</em> / «пісочниця»).</li>
+                            <li><strong>«Захопити порушників і переслідувати їх»</strong> — ведення журналів аудиту та залучення силових структур.</li>
+                         </ul>`,
+            question: 'Встанови відповідність між стратегією захисту та механізмом її реалізації:',
+            pairs: [
+                { left: '«Нікого не впускати»', right: 'Повна ізоляція інформаційної системи' },
+                { left: '«Не впускати порушників»', right: 'Міжмережеві екрани (МЕ) та цифрові підписи' },
+                { left: '«Пустити, але перешкодити шкоді»', right: 'Захищений простір виконання коду (Sandboxing)' },
+                { left: '«Захопити і переслідувати»', right: 'Системний аудит та робота силових структур' }
+            ],
+            explanation: 'Кожна стратегія використовує власний набір інструментів — від повної ізоляції до «пісочниць» та аудиту.'
+        },
+        {
+            type: 'match',
+            theoryTitle: 'Класифікація заходів протидії загрозам безпеки',
+            theoryHTML: `<p>Заходи протидії загрозам поділяють на чотири групи:</p>
+                         <ul>
+                            <li><strong>Правові (законодавчі):</strong> закони про відповідальність за кіберзлочини, захист авторських прав, кримінальне та цивільне законодавство.</li>
+                            <li><strong>Адміністративні:</strong> створення спеціальних структурних підрозділів (служба режиму, допуску, охорони, захисту документів).</li>
+                            <li><strong>Організаційні (процедурні):</strong> правила та процедури, орієнтовані на людей (перевірка персоналу, правило «двох осіб» для важливих робіт).</li>
+                            <li><strong>Інженерно-технічні:</strong> технічні, програмні та фізичні засоби захисту від несанкціонованого доступу та збоїв.</li>
+                         </ul>`,
+            question: 'Поєднай вид заходів протидії загрозам із конкретним прикладом його застосування:',
+            pairs: [
+                { left: 'Правові заходи', right: 'Закони про відповідальність за комп’ютерні злочини' },
+                { left: 'Адміністративні заходи', right: 'Робота служби режиму, допуску та охорони' },
+                { left: 'Організаційні заходи', right: 'Заборона ведення важливих робіт однією особою' },
+                { left: 'Інженерно-технічні заходи', right: 'Резервне копіювання та захист від збоїв живлення' }
+            ],
+            explanation: 'Комплексний захист поєднує закони (правові), підрозділи (адміністративні), правила для персоналу (організаційні) та техніку.'
+        },
+        {
+            type: 'mcq',
+            theoryTitle: 'Засоби фізичного захисту',
+            theoryHTML: `<p><strong>Засоби фізичного захисту</strong> спрямовані на створення фізичних перешкод для зловмисників та захист обладнання від зовнішніх чинників:</p>
+                         <ul>
+                            <li>обмеження фізичного доступу сторонніх осіб до серверних кімнат (кодові замки, охорона, сигналізація);</li>
+                            <li>контроль температури, вологості та наявність систем пожежогасіння у серверних;</li>
+                            <li>захист кабельних систем та встановлення джерел безперебійного живлення.</li>
+                         </ul>`,
+            question: 'Який із наведених заходів належить саме до засобів ФІЗИЧНОГО захисту інформації?',
+            options: [
+                { text: 'Обладнання серверної кімнати системою пожежогасіння, клімат-контролем та кодовим замком', correct: true },
+                { text: 'Шифрування конфіденційних файлів за допомогою криптографічних алгоритмів', correct: false },
+                { text: 'Налаштування антивірусного сканування електронної пошти', correct: false },
+                { text: 'Розмежування прав доступу користувачів до мережевих папок', correct: false }
+            ],
+            explanation: 'Фізичний захист охороняє саме матеріальне середовище: приміщення, сервери, кабелі та електроживлення.'
+        },
+        {
+            type: 'match',
+            theoryTitle: 'Види інженерно-технічних засобів захисту',
+            theoryHTML: `<p>Серед технічних засобів захисту виділяють три ключові категорії:</p>
+                         <ul>
+                            <li><strong>Апаратні засоби:</strong> спеціальні прилади, пристрої та технічні пристосування (наприклад, апаратні ключі, генератори шуму, датчики).</li>
+                            <li><strong>Програмні засоби:</strong> спеціальні програми та комплекси (антивіруси, системи розмежування повноважень, програмний контроль доступу).</li>
+                            <li><strong>Криптографічні засоби:</strong> спеціальні математичні та алгоритмічні методи шифрування інформації при її зберіганні та передачі мережею.</li>
+                         </ul>`,
+            question: 'Встанови відповідність між категорією засобів захисту та їхнім визначенням:',
+            pairs: [
+                { left: 'Криптографічні засоби', right: 'Математичні та алгоритмічні методи шифрування даних' },
+                { left: 'Програмні засоби', right: 'Антивіруси та системи розмежування повноважень' },
+                { left: 'Апаратні засоби', right: 'Спеціальні прилади, пристрої та технічні рішення' }
+            ],
+            explanation: 'Апаратні — це «залізо» (пристрої), програмні — код (антивіруси), криптографічні — математичне шифрування.'
+        },
+        {
+            type: 'mcq',
+            theoryTitle: 'Вимоги до системи безпеки інформації',
+            theoryHTML: `<p>Система захисту інформації (СЗІ) повинна відповідати низці суворих вимог, серед яких:</p>
+                         <ul>
+                            <li><strong>Принцип мінімальних привілеїв:</strong> надання користувачу лише тих мінімальних повноважень, які необхідні йому для виконання дорученої роботи.</li>
+                            <li>Чіткість визначення прав доступу та облік усіх спроб несанкціонованого доступу.</li>
+                            <li><strong>Цілісність та комплексність:</strong> жодна частина системи не може бути вилучена без втрат для загальної безпеки.</li>
+                         </ul>`,
+            question: 'Який обсяг прав доступу повинен отримувати співробітник згідно з вимогами до системи безпеки інформації?',
+            options: [
+                { text: 'Мінімальні повноваження, необхідні лише для виконання його службових обов’язків', correct: true },
+                { text: 'Повні права адміністратора на випадок, якщо колега захворіє', correct: false },
+                { text: 'Однаковий рівень доступу до всіх баз даних компанії для зручності роботи', correct: false },
+                { text: 'Доступ визначається самим співробітником на власний розсуд', correct: false }
+            ],
+            explanation: 'Надання мінімально необхідних повноважень обмежує можливу шкоду у разі злому облікового запису співробітника.'
+        },
+        {
+            type: 'match',
+            theoryTitle: 'Основні принципи побудови системи безпеки',
+            theoryHTML: `<p>Побудова СЗІ ґрунтується на таких фундаментальних принципах:</p>
+                         <ul>
+                            <li><strong>Безперервність:</strong> постійна готовність системи відбивати загрози в будь-який момент часу (навіть при збоях живлення).</li>
+                            <li><strong>Активність:</strong> прогнозування дій зловмисника та реалізація випереджаючих захисних заходів.</li>
+                            <li><strong>Скритність:</strong> виключення ознайомлення сторонніх осіб із засобами та технологіями захисту.</li>
+                            <li><strong>Цілеспрямованість:</strong> зосередження основних зусиль на захисті найбільш цінної інформації.</li>
+                         </ul>`,
+            question: 'Поєднай принцип побудови системи безпеки із його суттю:',
+            pairs: [
+                { left: 'Безперервність', right: 'Постійна готовність відбивати загрози в будь-який час' },
+                { left: 'Активність', right: 'Прогнозування дій зловмисника та випереджаючі заходи' },
+                { left: 'Скритність', right: 'Недопущення обізнаності сторонніх про технології захисту' },
+                { left: 'Цілеспрямованість', right: 'Зосередження зусиль на найбільш цінній інформації' }
+            ],
+            explanation: 'Ці принципи забезпечують проактивний, прихований та постійний захист критично важливих ресурсів.'
+        },
+        {
+            type: 'mcq',
+            theoryTitle: 'Захист доступу до комп’ютера та даних на дисках',
+            theoryHTML: `<p>Для запобігання несанкціонованому доступу до ПК використовують <strong>облікові записи</strong> та <strong>біометричні системи</strong> ідентифікації (за відбитками пальців, райдужною оболонкою ока, голосом).</p>
+                         <p>Для захисту даних на дисках, у папках та файлах встановлюють <strong>права доступу</strong> (повний доступ, тільки читання, доступ за паролем), які можуть відрізнятися для різних користувачів.</p>`,
+            question: 'Який із наведених методів належить до БІОМЕТРИЧНИХ систем ідентифікації користувача?',
+            options: [
+                { text: 'Розпізнавання райдужної оболонки ока або відбитків пальців', correct: true },
+                { text: 'Введення 12-значного пароля зі спеціальними символами', correct: false },
+                { text: 'Встановлення атрибута «Тільки читання» для документа', correct: false },
+                { text: 'Використання кодового механічного замка на дверях', correct: false }
+            ],
+            explanation: 'Біометрія використовує унікальні фізичні характеристики людини (відбиток пальця, райдужка ока, голос).'
+        },
+        {
+            type: 'mcq',
+            theoryTitle: 'Захист даних в Інтернеті',
+            theoryHTML: `<p>Під час роботи в Інтернеті існують специфічні загрози проникнення на локальний комп’ютер:</p>
+                         <ul>
+                            <li>веб-сторінки можуть містити <strong>активні елементи</strong> (скрипти), здатні виконувати деструктивні дії;</li>
+                            <li>веб-сервери зберігають на ПК текстові файли <strong>cookie</strong>, через які зловмисники можуть отримати конфіденційні дані про користувача;</li>
+                            <li>електронні листи та дописи в соцмережах можуть містити фішингові або шкідливі посилання.</li>
+                         </ul>`,
+            question: 'Яку потенційну загрозу безпеці можуть нести текстові файли cookie, що зберігаються браузером?',
+            options: [
+                { text: 'Через них сторонні особи можуть отримати конфіденційну інформацію про користувача та його сесії', correct: true },
+                { text: 'Вони фізично виводять з ладу блок живлення та жорсткий диск комп’ютера', correct: false },
+                { text: 'Вони автоматично змінюють права доступу в операційній системі на рівень адміністратора', correct: false },
+                { text: 'Вони відключають систему пожежогасіння у серверній кімнаті', correct: false }
+            ],
+            explanation: 'Файли cookie зберігають дані про дії користувача та авторизаційні токени, тому їх перехоплення загрожує конфіденційності.'
+        }
+    ];
+
+    // --- СТАН ГРИ ---
+    let shuffledQuestions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let stageFailed = false;
+
+    // Змінні для завдання на поєднання
+    let selectedLeft = null;
+    let selectedRight = null;
+    let matchedCount = 0;
+    let totalPairs = 0;
+
+    // --- DOM ЕЛЕМЕНТИ ---
+    const startScreen = document.getElementById('start-screen');
+    const stageScreen = document.getElementById('stage-screen');
+    const resultScreen = document.getElementById('result-screen');
+
+    const theoryPhase = document.getElementById('theory-phase');
+    const questionPhase = document.getElementById('question-phase');
+
+    const stepCounter = document.getElementById('step-counter');
+    const progressBar = document.getElementById('progress-bar');
+    const soundToggle = document.getElementById('sound-toggle');
+
+    const feedbackBox = document.getElementById('feedback-box');
+    const nextBtn = document.getElementById('next-btn');
+
+    // --- ДОПОМІЖНА ФУНКЦІЯ ПЕРЕМІШУВАННЯ (Фішера — Єйтса) ---
+    function shuffleArray(array) {
+        const arr = [...array];
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    // --- УПРАВЛІННЯ ЗВУКОМ ---
+    soundToggle.addEventListener('click', () => {
+        sfx.enabled = !sfx.enabled;
+        soundToggle.textContent = sfx.enabled ? '🔊 Звук: УВІМК' : '🔇 Звук: ВИМК';
+        if (sfx.enabled) sfx.click();
+    });
+
+    // --- ЗАПУСК КВЕСТУ ---
+    document.getElementById('start-btn').addEventListener('click', startQuest);
+    document.getElementById('restart-btn').addEventListener('click', startQuest);
+
+    function startQuest() {
+        sfx.click();
+        shuffledQuestions = shuffleArray(questData);
+        currentIndex = 0;
+        score = 0;
+
+        startScreen.classList.add('hidden');
+        resultScreen.classList.add('hidden');
+        stageScreen.classList.remove('hidden');
+
+        loadStage();
+    }
+
+    // --- ЗАВАНТАЖЕННЯ ЕТАПУ (СПОЧАТКУ ТЕОРІЯ) ---
+    function loadStage() {
+        const q = shuffledQuestions[currentIndex];
+        stageFailed = false;
+
+        // Оновлення прогресу
+        stepCounter.textContent = `Етап: ${currentIndex + 1} / ${shuffledQuestions.length}`;
+        progressBar.style.width = `${(currentIndex / shuffledQuestions.length) * 100}%`;
+
+        // Показуємо теорію, ховаємо питання
+        theoryPhase.classList.remove('hidden');
+        questionPhase.classList.add('hidden');
+        feedbackBox.className = 'feedback';
+        feedbackBox.textContent = '';
+        nextBtn.classList.add('hidden');
+
+        document.getElementById('theory-num').textContent = currentIndex + 1;
+        document.getElementById('theory-heading').textContent = q.theoryTitle;
+        document.getElementById('theory-body').innerHTML = q.theoryHTML;
+    }
+
+    // Перехід від теорії до питання
+    document.getElementById('to-question-btn').addEventListener('click', () => {
+        sfx.click();
+        theoryPhase.classList.add('hidden');
+        questionPhase.classList.remove('hidden');
+        renderQuestion();
+    });
+
+    // Повернення до перегляду теорії під час питання
+    document.getElementById('review-theory-btn').addEventListener('click', () => {
+        sfx.click();
+        questionPhase.classList.add('hidden');
+        theoryPhase.classList.remove('hidden');
+    });
+
+    // --- ВІДОБРАЖЕННЯ ЗАВДАННЯ ---
+    function renderQuestion() {
+        const q = shuffledQuestions[currentIndex];
+        document.getElementById('q-num').textContent = currentIndex + 1;
+        document.getElementById('question-text').textContent = q.question;
+
+        const mcqContainer = document.getElementById('mcq-container');
+        const matchContainer = document.getElementById('match-container');
+
+        mcqContainer.innerHTML = '';
+        mcqContainer.classList.add('hidden');
+        matchContainer.classList.add('hidden');
+
+        if (q.type === 'mcq') {
+            mcqContainer.classList.remove('hidden');
+            const shuffledOptions = shuffleArray(q.options);
+
+            shuffledOptions.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = `<span style="color:var(--accent-cyan); font-weight:700;">${String.fromCharCode(65 + idx)}.</span> <span>${opt.text}</span>`;
+                btn.addEventListener('click', () => handleMcqAnswer(btn, opt.correct, shuffledOptions, q.explanation));
+                mcqContainer.appendChild(btn);
+            });
+        } else if (q.type === 'match') {
+            matchContainer.classList.remove('hidden');
+            renderMatching(q);
+        }
+    }
+
+    // --- ОБРОБКА ТЕСТУ З ОДНІЄЮ ВІДПОВІДДЮ ---
+    function handleMcqAnswer(clickedBtn, isCorrect, options, explanation) {
+        const allBtns = document.querySelectorAll('#mcq-container .option-btn');
+        allBtns.forEach(b => b.disabled = true);
+
+        if (isCorrect) {
+            sfx.correct();
+            clickedBtn.classList.add('correct');
+            score++;
+            showFeedback(true, `✅ Правильно! ${explanation}`);
+        } else {
+            sfx.wrong();
+            clickedBtn.classList.add('wrong');
+            // Підсвічуємо правильний варіант
+            allBtns.forEach((btn, i) => {
+                if (options[i].correct) btn.classList.add('correct');
+            });
+            showFeedback(false, `❌ Помилка! ${explanation}`);
+        }
+
+        nextBtn.classList.remove('hidden');
+    }
+
+    // --- ОБРОБКА ЗАВДАННЯ НА ПОЄДНАННЯ ПАР ---
+    function renderMatching(q) {
+        const leftCol = document.getElementById('match-left');
+        const rightCol = document.getElementById('match-right');
+        leftCol.innerHTML = '';
+        rightCol.innerHTML = '';
+
+        selectedLeft = null;
+        selectedRight = null;
+        matchedCount = 0;
+        totalPairs = q.pairs.length;
+
+        const leftItems = shuffleArray(q.pairs.map((p, index) => ({ id: index, text: p.left })));
+        const rightItems = shuffleArray(q.pairs.map((p, index) => ({ id: index, text: p.right })));
+
+        leftItems.forEach(item => {
+            const btn = document.createElement('button');
+            btn.className = 'match-item';
+            btn.textContent = item.text;
+            btn.dataset.id = item.id;
+            btn.addEventListener('click', () => selectMatchItem(btn, 'left', q.explanation));
+            leftCol.appendChild(btn);
+        });
+
+        rightItems.forEach(item => {
+            const btn = document.createElement('button');
+            btn.className = 'match-item';
+            btn.textContent = item.text;
+            btn.dataset.id = item.id;
+            btn.addEventListener('click', () => selectMatchItem(btn, 'right', q.explanation));
+            rightCol.appendChild(btn);
+        });
+    }
+
+    function selectMatchItem(btn, side, explanation) {
+        if (btn.classList.contains('matched')) return;
+        sfx.click();
+
+        if (side === 'left') {
+            if (selectedLeft) selectedLeft.classList.remove('selected');
+            selectedLeft = btn;
+            btn.classList.add('selected');
+        } else {
+            if (selectedRight) selectedRight.classList.remove('selected');
+            selectedRight = btn;
+            btn.classList.add('selected');
+        }
+
+        if (selectedLeft && selectedRight) {
+            checkMatchPair(explanation);
+        }
+    }
+
+    function checkMatchPair(explanation) {
+        const lBtn = selectedLeft;
+        const rBtn = selectedRight;
+        selectedLeft = null;
+        selectedRight = null;
+
+        if (lBtn.dataset.id === rBtn.dataset.id) {
+            // Вірна пара
+            lBtn.classList.remove('selected');
+            rBtn.classList.remove('selected');
+            lBtn.classList.add('matched');
+            rBtn.classList.add('matched');
+            lBtn.disabled = true;
+            rBtn.disabled = true;
+            matchedCount++;
+
+            if (matchedCount === totalPairs) {
+                sfx.correct();
+                if (!stageFailed) {
+                    score++;
+                    showFeedback(true, `✅ Відмінно! Усі пари з’єднано без жодної помилки (+1 бал). ${explanation}`);
+                } else {
+                    showFeedback(false, `⚠️ Усі пари з’єднано, але під час виконання були допущені помилки (0 балів за етап). ${explanation}`);
+                }
+                nextBtn.classList.remove('hidden');
+            } else {
+                sfx.matchStep();
+            }
+        } else {
+            // Помилкова пара
+            sfx.wrong();
+            stageFailed = true;
+            lBtn.classList.remove('selected');
+            rBtn.classList.remove('selected');
+            lBtn.classList.add('error-flash');
+            rBtn.classList.add('error-flash');
+
+            setTimeout(() => {
+                lBtn.classList.remove('error-flash');
+                rBtn.classList.remove('error-flash');
+            }, 550);
+        }
+    }
+
+    function showFeedback(isSuccess, text) {
+        feedbackBox.textContent = text;
+        feedbackBox.className = `feedback show ${isSuccess ? 'success' : 'fail'}`;
+    }
+
+    // --- КНОПКА ПЕРЕХОДУ ДО НАСТУПНОГО ПИТАННЯ ---
+    nextBtn.addEventListener('click', () => {
+        sfx.click();
+        currentIndex++;
+        if (currentIndex < shuffledQuestions.length) {
+            loadStage();
+        } else {
+            showResults();
+        }
+    });
+
+    // --- ФІНАЛЬНИЙ ЕКРАН ---
+    function showResults() {
+        sfx.finish();
+        progressBar.style.width = '100%';
+        stepCounter.textContent = 'Завершено';
+
+        stageScreen.classList.add('hidden');
+        resultScreen.classList.remove('hidden');
+
+        const total = shuffledQuestions.length;
+        const grade10 = score; // 10 питань = максимум 10 балів
+        const wrongCount = total - score;
+        const percent = Math.round((score / total) * 100);
+
+        document.getElementById('final-grade').textContent = grade10;
+        document.getElementById('stat-correct').textContent = score;
+        document.getElementById('stat-wrong').textContent = wrongCount;
+        document.getElementById('stat-percent').textContent = `${percent}%`;
+
+        let verdictHTML = '';
+        if (grade10 >= 9) {
+            verdictHTML = `<div class="theory-title">🏆 Рівень: Архітектор кібербезпеки</div>
+                           <p>Блискучий результат! Ти бездоганно засвоїв принципи побудови СЗІ, стратегії протидії загрозам та класифікацію засобів захисту.</p>`;
+        } else if (grade10 >= 7) {
+            verdictHTML = `<div class="theory-title">🛡️ Рівень: Спеціаліст із захисту інформації</div>
+                           <p>Хороший рівень підготовки! Більшість протоколів безпеки засвоєно успішно, проте варто ще раз повторити етапи, де виникли помилки.</p>`;
+        } else if (grade10 >= 4) {
+            verdictHTML = `<div class="theory-title">⚠️ Рівень: Стажер відділу безпеки</div>
+                           <p>Базові поняття засвоєно, але в системі захисту залишилися вразливості. Рекомендуємо уважніше читати теоретичні брифінги перед відповіддю та спробувати ще раз.</p>`;
+        } else {
+            verdictHTML = `<div class="theory-title">🚨 Рівень: Критична вразливість системи</div>
+                           <p>Систему скомпрометовано! Пройди квест повторно, ретельно опрацьовуючи теоретичну картку на кожному етапі перед переходом до завдання.</p>`;
+        }
+
+        document.getElementById('result-verdict').innerHTML = verdictHTML;
+    }
+</script>
+
+</body>
+</html>
